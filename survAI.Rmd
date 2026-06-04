@@ -1,0 +1,691 @@
+---
+title: "survAI"
+author: "Leah von der Heyde"
+date: "`r Sys.Date()`"
+output: html_document
+---
+# Setup
+
+```{r}
+# set wd to file location
+
+# Load necessary libraries
+library(tidyverse)
+library(viridis)
+library(readr)
+library(tibble)
+```
+
+# Import data
+
+```{r}
+data <- read_csv("data_survai.csv")
+```
+
+# Helper
+
+```{r}
+# Helper for counting binaries
+prop_count <- function(data, cols, sort_desc = TRUE) {
+  data %>%
+    select(all_of(cols)) %>%
+    summarise(across(everything(), ~ sum(. == 1, na.rm = TRUE))) %>%  # count 1s
+    pivot_longer(
+      everything(),
+      names_to = "variable",
+      values_to = "count"
+    ) %>%
+    mutate(
+      proportion = count / nrow(data),
+      percent = proportion * 100
+    ) %>%
+    {if (sort_desc) arrange(., desc(proportion)) else .}
+}
+```
+
+# Publication years & types
+
+```{r}
+100*prop.table(table(data$year))
+100*prop.table(table(data$outlet_type))
+100*prop.table(table(data$year, data$outlet_type), 1)
+100*prop.table(table(data$peer_reviewed))
+```
+
+# Figure 2: Phases & tasks
+
+```{r}
+# Map tasks to stages
+task_stage_map <- tribble(
+  ~task,                  ~stage,
+  "task_researchdesign",  "Pre-data collection",
+  "task_instdev",         "Pre-data collection",
+  "task_pretesting",      "Pre-data collection",
+  "task_translation",     "Pre-data collection",
+  "task_intprep",         "Pre-data collection",
+  "task_sampling",        "Pre-data collection",
+  "task_interviewing",    "Data collection",
+  "task_datageneration",  "Data collection",
+  "task_preprocessing",   "Post-data collection",
+  "task_dataanalysis",    "Post-data collection",
+  "task_classification",  "Post-data collection",
+  "task_imputation",      "Post-data collection",
+  "task_archiving",       "Post-data collection",
+  "task_qualitycontrol",  "Post-data collection"
+)
+
+# Tasks in research process order
+task_labels <- c(
+  "task_researchdesign" = "Research design",
+  "task_instdev"        = "Instrument development",
+  "task_pretesting"     = "Answering pretest questions",
+  "task_translation"    = "Translation",  
+  "task_intprep"        = "Interviewer training",
+  "task_sampling"       = "Sampling",
+  "task_interviewing"   = "Interviewing human respondents",
+  "task_datageneration" = "Data generation",
+  "task_preprocessing"  = "Pre-processing",
+  "task_qualitycontrol" = "Quality control",
+  "task_imputation"     = "Imputation",
+  "task_classification" = "Classification",
+  "task_dataanalysis"   = "Data analysis",
+  "task_archiving"      = "Archiving"
+)
+
+task_order <- unname(task_labels)
+
+# Calculate shares
+data_plot_tasks <- data %>%
+  select(id, starts_with("task_")) %>%
+  pivot_longer(
+    cols = starts_with("task_"),
+    names_to = "task",
+    values_to = "value"
+  ) %>%
+  filter(value == 1) %>% # keep tasks actually used
+  left_join(task_stage_map, by = "task") %>%
+  count(stage, task, name = "n") %>%
+  mutate(
+    share = n / nrow(data) * 100,
+    task = recode(task, !!!task_labels),
+    task = factor(task, levels = rev(task_order)),
+    stage = factor(stage,
+    levels = c("Pre-data collection", "Data collection", "Post-data collection")
+                  )
+        )
+
+# Plot
+plot_tasks <- ggplot(
+  data_plot_tasks,
+  aes(x = share, y = task, fill = stage)
+) +
+  geom_col() +
+  geom_text(
+    aes(label = paste0(round(share, 1), "%")),
+    hjust = -0.1, size = 7.5
+  ) +
+  scale_fill_viridis_d() +
+  scale_x_continuous(
+    labels = scales::percent_format(scale = 1),
+    expand = expansion(mult = c(0, 0.2))
+  ) +
+  labs(
+    x = "Share of 136 papers",
+    y = NULL,
+    fill = "Research Phase"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.text  = element_text(size = 24),
+    legend.title = element_text(size = 24),
+    axis.text    = element_text(size = 24),
+    axis.title   = element_text(size = 24)
+  )
+
+ggsave(plot_tasks, file = "plot_tasks.png", height = 8, width = 18)
+
+plot_tasks
+
+100*prop.table(table(data$task_datageneration, data$method_silicon), 1)
+
+```
+## Number of papers with multiple tasks & phases
+
+```{r}
+# Tasks
+data <- data %>%
+  mutate(
+    n_tasks = rowSums(select(., starts_with("task_")) == 1, na.rm = TRUE)
+  )
+
+sum(data$n_tasks > 1)
+mean(data$n_tasks > 1)*100
+
+data %>%
+  count(n_tasks) %>%
+  mutate(prop = n / sum(n))
+
+# Phases
+data <- data %>%
+  mutate(
+    n_phases = rowSums(select(., starts_with("stage_")) == 1, na.rm = TRUE)
+  )
+
+sum(data$n_phases > 1)
+mean(data$n_phases > 1)*100
+
+data %>%
+  count(n_phases) %>%
+  mutate(prop = n / sum(n))
+```
+
+
+# Figure 3: LLMs
+
+```{r}
+# Calculate shares
+data_plot_llms <- data %>%
+  select(id, starts_with("llm_")) %>%
+  pivot_longer(
+    cols = starts_with("llm_"),
+    names_to = "llm",
+    values_to = "value"
+  ) %>%
+  filter(value == 1, # keep used LLMs
+         !llm %in% c("llm_multiple", "llm_bert")
+         ) %>%
+  mutate(
+          # Collapse model derivatives
+          llm = case_when(
+                llm == "llm_bard"    ~ "llm_gemini",
+                llm == "llm_alpaca" ~ "llm_llama",
+                TRUE                ~ llm
+                ),
+          # Keep only main models, collapse rest into Other
+          llm = if_else(
+                llm %in% c(
+                          "llm_gpt",
+                          "llm_claude",
+                          "llm_llama",
+                          "llm_gemini",
+                          "llm_mistral",
+                          "llm_deepseek"
+                          ),
+                          llm,
+                        "llm_other"
+                        ),
+          # Clean labels
+        llm = llm %>%
+        str_remove("^llm_") %>%
+        str_to_title(),
+        llm = case_when(
+                llm == "Gpt" ~ "GPT",
+                llm == "Deepseek" ~ "DeepSeek",
+                TRUE ~ llm),
+        llm_type = if_else(
+                            llm %in% c("GPT", "Claude", "Gemini"),
+                            "Proprietary",
+                            "Open-source"
+                          )
+  ) %>%
+  count(llm, llm_type, name = "n") %>%
+  mutate(
+    share = n / nrow(data) * 100
+  ) %>%
+  arrange(desc(share)) %>%
+  mutate(llm = factor(llm, levels = c("Other", "DeepSeek", "Mistral", "Gemini", "Claude", "Llama", "GPT"))) # descending order with "Other" last
+
+# Plot
+plot_llms <- ggplot(
+  data_plot_llms,
+  aes(x = share, y = llm, fill = llm_type)
+) +
+  geom_col() +
+  geom_text(
+    aes(label = paste0(round(share, 1), "%")),
+    hjust = -0.1,
+    size = 7.5
+  ) +
+  scale_fill_viridis_d(name = "LLM Type") +
+  scale_x_continuous(
+    labels = scales::percent_format(scale = 1),
+    expand = expansion(mult = c(0, 0.2))
+  ) +
+  labs(
+    x = "Share of 136 papers",
+    y = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    legend.text  = element_text(size = 24),
+    legend.title = element_text(size = 24),
+    axis.text    = element_text(size = 24),
+    axis.title   = element_text (size = 24)
+  ) +
+  coord_cartesian(clip = "off") +
+  theme(
+    plot.margin = margin(10, 80, 10, 10)
+  )
+
+ggsave(plot_llms, file = "plot_llms.png", height = 8, width = 18)
+
+plot_llms
+
+```
+## Appendix: LLMs by phase
+
+```{r}
+# Calculate number of unique papers per stage
+stage_counts <- data %>%
+  select(id, starts_with("stage_")) %>%
+  pivot_longer(
+    cols = starts_with("stage_"),
+    names_to = "stage",
+    values_to = "stage_value"
+  ) %>%
+  filter(stage_value == 1) %>%
+  mutate(
+    stage = recode(stage,
+                   "stage_pre"  = "Pre-data collection",
+                   "stage_data" = "Data collection",
+                   "stage_post" = "Post-data collection"),
+    stage = factor(stage, levels = c("Pre-data collection", "Data collection", "Post-data collection"))
+  ) %>%
+  count(stage, name = "n_stage")
+
+
+# Pivot longer and clean LLM data
+llm_long <- data %>%
+  select(id, starts_with("llm_")) %>%
+  pivot_longer(
+    cols = starts_with("llm_"),
+    names_to = "llm",
+    values_to = "llm_value"
+  ) %>%
+  filter(
+    llm_value == 1,
+    !llm %in% c("llm_multiple", "llm_bert")
+  ) %>%
+  mutate(
+    llm = case_when(
+      llm == "llm_bard"   ~ "llm_gemini",
+      llm == "llm_alpaca" ~ "llm_llama",
+      TRUE ~ llm
+    ),
+    llm = if_else(
+      llm %in% c(
+        "llm_gpt",
+        "llm_claude",
+        "llm_llama",
+        "llm_gemini",
+        "llm_mistral",
+        "llm_deepseek"
+      ),
+      llm,
+      "llm_other"
+    ),
+    llm = llm %>%
+      str_remove("^llm_") %>%
+      str_to_title(),
+    llm = case_when(
+      llm == "Gpt" ~ "GPT",
+      llm == "Deepseek" ~ "DeepSeek",
+      TRUE ~ llm
+    ),
+    llm_type = if_else(
+      llm %in% c("GPT", "Claude", "Gemini"),
+      "Proprietary",
+      "Open-source"
+    )
+  )
+
+
+# Pivot longer stages
+stage_long <- data %>%
+  select(id, starts_with("stage_")) %>%
+  pivot_longer(
+    cols = starts_with("stage_"),
+    names_to = "stage",
+    values_to = "stage_value"
+  ) %>%
+  filter(stage_value == 1) %>%
+  mutate(
+    stage = recode(stage,
+                   "stage_pre"  = "Pre-data collection",
+                   "stage_data" = "Data collection",
+                   "stage_post" = "Post-data collection"),
+    stage = factor(stage, levels = c("Pre-data collection", "Data collection", "Post-data collection"))
+  )
+
+# Join and calculate stage-specific percentages
+data_plot_llms_stage <- llm_long %>%
+  inner_join(stage_long, by = "id") %>%
+  count(stage, llm, llm_type, name = "n") %>%
+  left_join(stage_counts, by = "stage") %>%
+  mutate(
+    share = n / n_stage * 100,
+    stage_label = paste0(stage, " (n = ", n_stage, ")"),
+    stage_label = factor(stage_label, levels = c("Pre-data collection (n = 23)", "Data collection (n = 54)", "Post-data collection (n = 73)")), # hard-code!
+    llm = factor(
+      llm,
+      levels = c("Other", "DeepSeek", "Mistral",
+                 "Gemini", "Claude", "Llama", "GPT")
+    )
+  )
+
+# Plot
+plot_llms_stage <- ggplot(
+  data_plot_llms_stage,
+  aes(x = share, y = llm, fill = llm_type)
+) +
+  geom_col() +
+  geom_text(
+    aes(label = paste0(round(share, 1), "%")),
+    hjust = -0.1,
+    size = 6
+  ) +
+  facet_wrap(~ stage_label) +
+  scale_fill_viridis_d(name = "LLM Type") +
+  scale_x_continuous(
+    labels = scales::percent_format(scale = 1),
+    expand = expansion(mult = c(0, 0.2))
+  ) +
+  labs(
+    x = "Share of papers within phase",
+    y = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    legend.text  = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    axis.text    = element_text(size = 16),
+    axis.title   = element_text(size = 18),
+    strip.text   = element_text(size = 18)
+  ) +
+  coord_cartesian(clip = "off") +
+  theme(
+    plot.margin = margin(10, 80, 10, 10)
+  )
+
+ggsave(plot_llms_stage, file = "plot_llms_stage.png", height = 8, width = 18)
+
+plot_llms_stage
+```
+
+## Number of papers with multiple LLMs & which
+
+```{r}
+100*prop.table(table(data$llm_multiple))
+100*prop.table(table(data$llm_gpt, data$llm_multiple), 1)
+
+
+data_llm_combos <- data %>%
+  # Keep only papers flagged as using multiple LLMs
+  filter(llm_multiple == 1) %>%
+  
+  select(id, starts_with("llm_")) %>%
+  
+  pivot_longer(
+    cols = starts_with("llm_"),
+    names_to = "llm",
+    values_to = "value"
+  ) %>%
+  
+  # Keep actually used LLMs
+  filter(
+    value == 1,
+    !llm %in% c("llm_multiple")
+  ) %>%
+  
+  # Collapse derivatives
+  mutate(
+    llm = case_when(
+      llm == "llm_bard"   ~ "llm_gemini",
+      llm == "llm_alpaca" ~ "llm_llama",
+      TRUE ~ llm
+    ),
+    
+    # Keep core models, collapse rest into Other
+    llm = if_else(
+      llm %in% c(
+        "llm_gpt",
+        "llm_claude",
+        "llm_llama",
+        "llm_gemini",
+        "llm_mistral",
+        "llm_deepseek",
+        "llm_bert"
+      ),
+      llm,
+      "llm_other"
+    ),
+    
+    # Clean labels
+    llm = llm %>%
+      str_remove("^llm_") %>%
+      str_to_title(),
+    
+    llm = case_when(
+      llm == "Gpt" ~ "GPT",
+      llm == "Deepseek" ~ "DeepSeek",
+      llm == "Bert" ~ "BERT",
+      TRUE ~ llm
+    )
+  ) %>%
+  
+  # Create combination per paper
+  group_by(id) %>%
+  summarise(
+    combo = paste(sort(unique(llm)), collapse = " + "),
+    n_models = n(),
+    .groups = "drop"
+  )
+
+# 7 papers comparing only within the same family
+
+data_plot_llms_multiple <- data_llm_combos %>%
+  count(combo, sort = TRUE)
+
+plot_llms_multiple <- ggplot(data_plot_llms_multiple,
+       aes(x = n,
+           y = reorder(combo, n))) +
+    geom_col(fill = viridis(1)) +
+  geom_text(aes(label = n),
+            hjust = -0.2,
+            size = 5) +
+  scale_x_continuous(expand = expansion(mult = c(0, .15))) +
+  labs(
+    x = "Number of papers using multiple LLMs",
+    y = "LLM families used"
+  ) +
+  theme_minimal() +
+  coord_cartesian(clip = "off") +
+  theme(
+    axis.text = element_text(size = 14),
+    axis.title = element_text(size = 16)
+  )
+
+ggsave(plot_llms_multiple, file = "plot_llms_multiple.png", height = 8, width = 18)
+
+plot_llms_multiple
+```
+
+
+# Prompting approaches
+
+```{r}
+prompt_props <- prop_count(data, cols = grep("^prompt_", names(data), value = TRUE))
+
+prompt_props
+```
+
+## Appendix: Prompting approaches by phase
+
+```{r}
+# Reshape prompting data
+prompt_long <- data %>%
+  select(id, starts_with("prompt_")) %>%
+  pivot_longer(
+    cols = starts_with("prompt_"),
+    names_to = "prompt",
+    values_to = "prompt_value"
+  ) %>%
+  filter(prompt_value == 1) %>%
+  mutate(
+    prompt = recode(prompt,
+                    "prompt_zero"     = "Zero-shot",
+                    "prompt_few"      = "One-/Few-shot",
+                    "prompt_finetune" = "Fine-tuning"),
+    prompt = factor(prompt, levels = c("Fine-tuning", "One-/Few-shot", "Zero-shot"))
+  )
+
+# Join with stage info
+prompt_stage <- stage_long %>%
+  select(id, stage) %>%
+  distinct()   # ensure one row per id-stage
+
+data_plot_prompt_stage <- prompt_long %>%
+  inner_join(stage_long, by = "id") %>%
+  group_by(stage, prompt) %>%
+  summarise(
+    n = n_distinct(id),
+    .groups = "drop"
+  ) %>%
+  left_join(stage_counts, by = "stage") %>%
+  mutate(
+    share = n / n_stage * 100,
+    stage_label = factor(
+      paste0(stage, " (n = ", n_stage, ")"),
+      levels = paste0(levels(stage_counts$stage), " (n = ", stage_counts$n_stage, ")")
+    )
+  )
+
+# Plot
+plot_prompt_stage <- ggplot(
+  data_plot_prompt_stage,
+  aes(x = share, y = prompt)
+) +
+  geom_col(fill = viridis(1)
+           ) +
+  geom_text(
+    aes(label = paste0(round(share, 1), "%")),
+    hjust = -0.1,
+    size = 6
+  ) +
+  facet_wrap(~ stage_label) +
+  scale_color_viridis_d() +
+  scale_x_continuous(
+    labels = scales::percent_format(scale = 1),
+    expand = expansion(mult = c(0, 0.2))
+  ) +
+  labs(
+    x = "Share of papers within phase",
+    y = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    legend.text  = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    axis.text    = element_text(size = 16),
+    axis.title   = element_text(size = 18),
+    strip.text   = element_text(size = 18)
+  ) +
+  coord_cartesian(clip = "off") +
+  theme(
+    plot.margin = margin(10, 80, 10, 10)
+  )
+
+ggsave(plot_prompt_stage, file = "plot_prompt_stage.png", height = 8, width = 18)
+
+plot_prompt_stage
+```
+
+
+# Figure 4: Languages used
+
+```{r}
+# Map labels
+lang_labels <- c(
+  "lang_en" = "English",
+  "lang_de" = "German",
+  "lang_cn" = "Chinese",
+  "lang_es" = "Spanish",
+  "lang_fr" = "French",
+  "lang_kr" = "Korean",
+  "lang_ar" = "Arabic",
+  "lang_it" = "Italian",
+  "lang_pt" = "Portuguese",
+  "lang_se" = "Swedish",
+  "lang_nl" = "Dutch",
+  "lang_sk" = "Slovak",
+  "lang_hi" = "Hindu",
+  "lang_jp" = "Japanese",
+  "lang_other" = "Other"
+)
+
+# Calculate shares
+data_plot_lang <- data %>%
+  select(id, starts_with("lang_")) %>%
+  pivot_longer(
+    cols = starts_with("lang_"),
+    names_to = "lang",
+    values_to = "value"
+  ) %>%
+  filter(value == 1) %>%
+  mutate(
+    language = recode(lang, !!!lang_labels),
+    language = if_else(language %in% c("Hindu", "Italian"), "Other", language)
+  ) %>%
+  count(language, name = "n") %>%
+  mutate(
+    share = n / nrow(data) * 100,
+  ) %>%
+  arrange(desc(share)) %>%
+  mutate(language = factor(language, levels = c("Other", "Swedish", "Slovak", "Portuguese", "Korean", "Dutch", "Japanese", "Arabic", "French", "Spanish", "Chinese", "German", "English")))  # descending order with "Other" last
+
+
+# Plot
+plot_lang <- ggplot(data_plot_lang, aes(x = share, y = language)) +
+  geom_col(fill = viridis(1)
+           ) +
+  geom_text(aes(label = paste0(round(share, 1), "%")),
+            hjust = -0.1, size = 7.5) +
+  scale_x_continuous(
+    labels = scales::percent_format(scale = 1),
+    expand = expansion(mult = c(0, 0.2))
+  ) +
+  labs(
+    x = "Share of 136 papers",
+    y = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text    = element_text(size = 24),
+    axis.title   = element_text(size = 24)
+  ) +
+  coord_cartesian(clip = "off") +
+  theme(
+    plot.margin = margin(10, 80, 10, 10)
+  )
+
+ggsave(plot_lang, file = "plot_lang.png", height = 8, width = 18)
+
+plot_lang
+```
+
+# Appendix: Populations
+
+```{r}
+pop_props <- prop_count(data, cols = grep("^pop_", names(data), value = TRUE))
+
+pop_props
+```
+
+# Appendix: Domains
+
+```{r}
+domain_props <- prop_count(data, cols = grep("^domain_", names(data), value = TRUE))
+
+domain_props
+```
+
