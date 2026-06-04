@@ -3,7 +3,7 @@ Data and code for "AI in the Loop!? A Systematic Review of the Use of Large Lang
 
 File descriptions:
 
-survAI.Rmd contains the code for reproducing statistics and charts in the paper.
+survAI.Rmd contains the code for reproducing statistics and charts in the paper in R.
 
 survai.csv contains the corresponding data, including the quantitative variables of the paper codings.
 
