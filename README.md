@@ -5,7 +5,7 @@ File descriptions:
 
 survAI.Rmd contains the code for reproducing statistics and charts in the paper in R.
 
-survai.csv contains the corresponding data, including the quantitative variables of the paper codings.
+data_survai.csv contains the corresponding data, including the quantitative variables of the paper codings.
 
 corpus_1_included.bib contains the 136 papers included in the systematic review.
 
