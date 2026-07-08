@@ -940,7 +940,7 @@ const PAPERS = [
   },
   {
     "id": "ding-2024-32",
-    "citation": "Ding, X., Gopannagari, M., Sun, K., Tao, A., Zhao, D., Varadhan, S., Hardy, B., Dalpiaz, D., Vogiatzis, C., Angrave, L., & Liu, H. (2024, June 23). Evaluation of LLMs and Other Machine Learning Methods in the Analysis of Qualitative Survey Responses for Accessible Engineering Education Research. 2024 ASEE Annual Conference &amp; Exposition Proceedings. The Future of Engeneering Education. https://doi.org/10.18260/1-2-47360",
+    "citation": "Ding, X., Gopannagari, M., Sun, K., Tao, A., Zhao, D., Varadhan, S., Hardy, B., Dalpiaz, D., Vogiatzis, C., Angrave, L., & Liu, H. (2024). Evaluation of LLMs and Other Machine Learning Methods in the Analysis of Qualitative Survey Responses for Accessible Engineering Education Research. 2024 ASEE Annual Conference &amp; Exposition Proceedings. The Future of Engeneering Education. https://doi.org/10.18260/1-2-47360",
     "title": "Evaluation of LLMs and Other Machine Learning Methods in the Analysis of Qualitative Survey Responses for Accessible Engineering Education Research",
     "year": "2024",
     "doi": "https://www.doi.org/10.18260/1-2--47360",
@@ -1047,7 +1047,7 @@ const PAPERS = [
   },
   {
     "id": "ehrett-2024-36",
-    "citation": "Ehrett, C., Hegde, S., Andre, K., Liu, D., & Wilson, T. (2023). Leveraging Open-Source Large Language Models for Data Augmentation in Hospital Staff Surveys: Mixed Methods Study. JMIR Medical Education, 10(1). https://doi.org/10.2196/51433",
+    "citation": "Ehrett, C., Hegde, S., Andre, K., Liu, D., & Wilson, T. (2024). Leveraging Open-Source Large Language Models for Data Augmentation in Hospital Staff Surveys: Mixed Methods Study. JMIR Medical Education, 10(1). https://doi.org/10.2196/51433",
     "title": "Leveraging Open-Source Large Language Models for Data Augmentation in Hospital Staff Surveys: Mixed Methods Study",
     "year": "2024",
     "doi": "https://doi.org/10.2196/51433",
@@ -1948,7 +1948,7 @@ const PAPERS = [
   },
   {
     "id": "kalinin-2023-66",
-    "citation": "Kalinin, K. (2023a). Generation of Synthetic Responses to Survey Questions Using GPT-3: A Case of Hard-to-Reach Members of Russian Elites (based on the Survey of Russian Elites). Social Science Research Network. https://dx.doi.org/10.2139/ssrn.4413145",
+    "citation": "Kalinin, K. (2023). Generation of Synthetic Responses to Survey Questions Using GPT-3: A Case of Hard-to-Reach Members of Russian Elites (based on the Survey of Russian Elites). Social Science Research Network. https://dx.doi.org/10.2139/ssrn.4413145",
     "title": "Generation of Synthetic Responses to Survey Questions Using GPT-3: A Case of Hard-to-Reach Members of Russian Elites (based on the Survey of Russian Elites)",
     "year": "2023",
     "doi": "https://dx.doi.org/10.2139/ssrn.4413145",
@@ -1979,7 +1979,7 @@ const PAPERS = [
   },
   {
     "id": "kalinin-2023-67",
-    "citation": "Kalinin, K. (2023b). Improving GPT Generated Synthetic Samples with Sampling-Permutation Algorithm. Social Science Research Network. https://doi.org/10.2139/ssrn.4548937",
+    "citation": "Kalinin, K. (2023). Improving GPT Generated Synthetic Samples with Sampling-Permutation Algorithm. Social Science Research Network. https://doi.org/10.2139/ssrn.4548937",
     "title": "Improving GPT Generated Synthetic Samples with Sampling-Permutation Algorithm",
     "year": "2023",
     "doi": "https://dx.doi.org/10.2139/ssrn.4548937",
@@ -2008,7 +2008,7 @@ const PAPERS = [
     "data_type": [
       "survey"
     ],
-    "abstract": "The primary objective of this study is to leverage the capabilities of a large language model (LLM), such as GPT-3, to generate responses from elite individuals who are difficult to access. Similar to the work of Argyle et al. (2023), this study specifically focuses on the domain of multiple-choice questions. To address the issue of instability and hallucinations commonly associated with LLM, a novel algorithm, termed the “sampling-permutation algorithm”, has been developed and implemented. The efficacy of this algorithm is assessed by applying it to questions from the Survey of Russian Elites(Zimmerman, Rivera and Kalinin 2022). Notably, this study examines the generated responses from synthetic personas representing the Russian President Vladimir Putin and the opposition leader Alexei Navalny by conducting a validation study and exploring the effects of the war context on generated responses. My findings indicate that the proposed approach provides valuable insights, despite the presence of somewhat mixed results."
+    "abstract": "The primary objective of this study is to leverage the capabilities of a large language model (LLM), such as GPT-3, to generate responses from elite individuals who are difficult to access. Similar to the work of Argyle et al. (2023), this study specifically focuses on the domain of multiple-choice questions. To address the issue of instability and hallucinations commonly associated with LLM, a novel algorithm, termed the “sampling-permutation algorithm”, has been developed and implemented. The efficacy of this algorithm is assessed by applying it to questions from the Survey of Russian Elites (Zimmerman, Rivera and Kalinin 2022). Notably, this study examines the generated responses from synthetic personas representing the Russian President Vladimir Putin and the opposition leader Alexei Navalny by conducting a validation study and exploring the effects of the war context on generated responses. My findings indicate that the proposed approach provides valuable insights, despite the presence of somewhat mixed results."
   },
   {
     "id": "kang-2023-68",
@@ -4184,7 +4184,7 @@ const PAPERS = [
   },
   {
     "id": "von-2024-148",
-    "citation": "von der Heyde, L., Haensch, A.-C., & Wenz, A. (2024b). Vox Populi, Vox AI? Using Language Models to Estimate German Public Opinion. https://doi.org/10.48550/arXiv.2407.08563 v",
+    "citation": "von der Heyde, L., Haensch, A.-C., & Wenz, A. (2024). Vox Populi, Vox AI? Using Language Models to Estimate German Public Opinion. https://doi.org/10.48550/arXiv.2407.08563 v",
     "title": "Vox Populi, Vox AI? Using Language Models to Estimate German Public Opinion",
     "year": "2024",
     "doi": "https://doi.org/10.48550/arXiv.2407.08563",
@@ -4218,8 +4218,8 @@ const PAPERS = [
     "abstract": "The recent development of large language models (LLMs) has spurred discussions about whether LLM-generated \"synthetic samples\" could complement or replace traditional surveys, considering their training data potentially reflects attitudes and behaviors prevalent in the population. A number of mostly US-based studies have prompted LLMs to mimic survey respondents, with some of them finding that the responses closely match the survey data. However, several contextual factors related to the relationship between the respective target population and LLM training data might affect the generalizability of such findings. In this study, we investigate the extent to which LLMs can estimate public opinion in Germany, using the example of vote choice. We generate a synthetic sample of personas matching the individual characteristics of the 2017 German Longitudinal Election Study respondents. We ask the LLM GPT-3.5 to predict each respondent's vote choice and compare these predictions to the survey-based estimates on the aggregate and subgroup levels. We find that GPT-3.5 does not predict citizens' vote choice accurately, exhibiting a bias towards the Green and Left parties. While the LLM captures the tendencies of \"typical\" voter subgroups, such as partisans, it misses the multifaceted factors swaying individual voter choices. By examining the LLM-based prediction of voting behavior in a new context, our study contributes to the growing body of research about the conditions under which LLMs can be leveraged for studying public opinion. The findings point to disparities in opinion representation in LLMs and underscore the limitations in applying them for public opinion estimation."
   },
   {
-    "id": "on-2024-149",
-    "citation": "on der Heyde, L., Haensch, A.-C., & Wenz, A. (2024a). United in Diversity? Contextual Biases in LLM-Based Predictions of the 2024 European Parliament Elections. https://doi.org/10.48550/arXiv.2409.09045",
+    "id": "von-2024-149",
+    "citation": "von der Heyde, L., Haensch, A.-C., & Wenz, A. (2024). United in Diversity? Contextual Biases in LLM-Based Predictions of the 2024 European Parliament Elections. https://doi.org/10.48550/arXiv.2409.09045",
     "title": "United in Diversity? Contextual Biases in LLM-Based Predictions of the 2024 European Parliament Elections",
     "year": "2024",
     "doi": "https://doi.org/10.48550/arXiv.2409.09045",
