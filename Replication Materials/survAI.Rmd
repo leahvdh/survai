@@ -142,7 +142,7 @@ plot_tasks <- ggplot(
     axis.title   = element_text(size = 24)
   )
 
-ggsave(plot_tasks, file = "plot_tasks.png", height = 8, width = 18)
+#ggsave(plot_tasks, file = "plot_tasks.png", height = 8, width = 18)
 
 plot_tasks
 
@@ -267,7 +267,7 @@ plot_llms <- ggplot(
     plot.margin = margin(10, 80, 10, 10)
   )
 
-ggsave(plot_llms, file = "plot_llms.png", height = 8, width = 18)
+#ggsave(plot_llms, file = "plot_llms.png", height = 8, width = 18)
 
 plot_llms
 
@@ -407,7 +407,7 @@ plot_llms_stage <- ggplot(
     plot.margin = margin(10, 80, 10, 10)
   )
 
-ggsave(plot_llms_stage, file = "plot_llms_stage.png", height = 8, width = 18)
+#ggsave(plot_llms_stage, file = "plot_llms_stage.png", height = 8, width = 18)
 
 plot_llms_stage
 ```
@@ -505,7 +505,7 @@ plot_llms_multiple <- ggplot(data_plot_llms_multiple,
     axis.title = element_text(size = 16)
   )
 
-ggsave(plot_llms_multiple, file = "plot_llms_multiple.png", height = 8, width = 18)
+#ggsave(plot_llms_multiple, file = "plot_llms_multiple.png", height = 8, width = 18)
 
 plot_llms_multiple
 ```
@@ -595,7 +595,7 @@ plot_prompt_stage <- ggplot(
     plot.margin = margin(10, 80, 10, 10)
   )
 
-ggsave(plot_prompt_stage, file = "plot_prompt_stage.png", height = 8, width = 18)
+#ggsave(plot_prompt_stage, file = "plot_prompt_stage.png", height = 8, width = 18)
 
 plot_prompt_stage
 ```
@@ -668,7 +668,7 @@ plot_lang <- ggplot(data_plot_lang, aes(x = share, y = language)) +
     plot.margin = margin(10, 80, 10, 10)
   )
 
-ggsave(plot_lang, file = "plot_lang.png", height = 8, width = 18)
+#ggsave(plot_lang, file = "plot_lang.png", height = 8, width = 18)
 
 plot_lang
 ```

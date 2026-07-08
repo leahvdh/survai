@@ -14,6 +14,12 @@ Replication materials and databases for the paper "AI in the Loop!? A Systematic
 
 - `data_survai.csv` contains the corresponding data, including the quantitative variables of the paper codings.
 
+- `arxiv_api.py`contains the code for searching the arXiv API with the keyword queries
+
+- `semantic_api.py` contains the code for searching the Semantic Scholar API with the keyword queries
+
+- `WOS-queries.py` contains the code for manually searching Web of Science with the keyword queries
+
 ## Corpora:
 
 - `corpus_1_included.bib` contains the 136 papers included in the systematic review.
