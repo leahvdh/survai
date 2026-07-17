@@ -14,11 +14,13 @@ Replication materials and databases for the paper "AI in the Loop!? A Systematic
 
 - `data_survai.csv` contains the corresponding data, including the quantitative variables of the paper codings.
 
-- `arxiv_api.py`contains the code for searching the arXiv API with the keyword queries
+- `arxiv_api.py`contains the code for searching the arXiv API with the keyword queries.
 
-- `semantic_api.py` contains the code for searching the Semantic Scholar API with the keyword queries
+- `semantic_api.py` contains the code for searching the Semantic Scholar API with the keyword queries.
 
-- `WOS-queries.py` contains the code for manually searching Web of Science with the keyword queries
+- `WOS_queries.py` contains the code for generating keyword queries for Web of Science for manually search.
+
+- `paper_model.py` contains the code for transforming the search results into bibtex files.
 
 ## Corpora:
 
