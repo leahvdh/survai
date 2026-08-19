@@ -5,20 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A searchable database of studies using large language models in survey and public opinion research.">
   <title>SurvAI Hub</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🤖%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body id="top">
 
   <!-- HEADER -->
   <header id="site-header">
     <div class="container header-inner">
-      <div class="header-brand">
-        <span class="header-logo" aria-hidden="true">&#9632;</span>
-        <span class="header-title">SurvAI Hub</span>
-      </div>
+      <a class="header-brand" href="#top" aria-label="Jump to top">
+       <span class="header-logo" aria-hidden="true">🤖</span>
+       <span class="header-title">SurvAI Hub</span>
+      </a>
       <nav class="header-nav" aria-label="Main navigation">
         <a href="#catalog-section">Browse</a>
         <a href="#about">About</a>
@@ -73,8 +74,20 @@
         <div class="controls-row controls-row--filters" id="filter-rows"></div>
         <div class="controls-row controls-row--meta">
           <span id="result-count" aria-live="polite" aria-atomic="true"></span>
-          <button id="clear-filters" class="btn-clear" hidden>Clear filters</button>
-        </div>
+
+          <div class="controls-actions">
+           <label for="sort-select" class="sort-label">Sort by</label>
+           <select id="sort-select" class="sort-select">
+            <option value="default">Default order</option>
+             <option value="year-desc">Year: newest first</option>
+             <option value="year-asc">Year: oldest first</option>
+             <option value="title-asc">Title: A–Z</option>
+             <option value="citation-asc">Citation: A–Z</option>
+            </select>
+
+    <button id="clear-filters" class="btn-clear" hidden>Clear filters</button>
+  </div>
+</div>
       </div>
 
       <div id="catalog" aria-label="Papers catalog">
@@ -98,7 +111,11 @@
             For details on the search strategy and eligibility criteria, as well as a systematic review of the studies, see the accompanying paper: 
             <br>
             <p>
+<<<<<<< Updated upstream:docs/index.html
             von der Heyde, L., Keusch, F., Buskirk, T., & Eck, A. (2026). <i>AI in the Loop?! A Systematic Review of the Use of Large Language Models in Survey and Public Opinion Research.</i> <a href="https://doi.org/10.31235/osf.io/eubj4_v1">https://doi.org/10.31235/osf.io/eubj4_v1</a>.
+=======
+            von der Heyde, L., Keusch, F., Buskirk, T., & Eck, A. (2026). <i>AI in the Loop?! A Systematic Review of the Use of Large Language Models in Survey and Public Opinion Research.</i>  href="https://doi.org/10.31235/osf.io/eubj4_v1">https://doi.org/10.31235/osf.io/eubj4_v1</a>.
+>>>>>>> Stashed changes:index.html
             </p>
           </p>
         </div>
@@ -156,6 +173,10 @@
       <span>Content licensed <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></span>
     </div>
   </footer>
+
+  <button id="back-to-top" type="button" aria-label="Back to top">
+  ↑
+  </button>
 
   <!-- DATA: place your survai_db.js content below this line, or keep as separate file -->
   <script src="survai_db.js"></script>

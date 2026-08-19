@@ -34,6 +34,7 @@
   });
 
   let searchDebounceTimer = null;
+  let sortState = 'default';
 
   // ── Helpers ──────────────────────────────────────────────────
   function esc(str) {
@@ -42,17 +43,44 @@
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  function unique(arr) {
-    return [...new Set(arr)].sort(function (a, b) { return String(a).localeCompare(String(b)); });
-  }
+function unique(arr) {
+  return [...new Set(arr)].sort(function (a, b) { return String(a).localeCompare(String(b)); });
+}
 
-  function flatUnique(data, field) {
-    return unique(data.flatMap(function (p) { return p[field] || []; }));
-  }
+function isMissingValue(value) {
+  if (value === null || value === undefined) return true;
 
-  function singleUnique(data, field) {
-    return unique(data.filter(function (p) { return p[field]; }).map(function (p) { return String(p[field]); }));
-  }
+  const normalized = String(value).trim().toLowerCase();
+
+  return (
+    normalized === '' ||
+    normalized === 'na' ||
+    normalized === 'n/a' ||
+    normalized === 'nan' ||
+    normalized === '0'
+  );
+}
+
+function cleanFieldValues(value) {
+  if (value === null || value === undefined) return [];
+
+  const values = Array.isArray(value) ? value : [value];
+
+  return values
+    .map(function (v) { return String(v).trim(); })
+    .filter(function (v) { return !isMissingValue(v); });
+}
+
+function flatUnique(data, field) {
+  return unique(data.flatMap(function (p) { return cleanFieldValues(p[field]); }));
+}
+
+function singleUnique(data, field) {
+  return unique(data.flatMap(function (p) { return cleanFieldValues(p[field]); }));
+}
+function formatFilterLabel(value) {
+  return String(value).trim().toUpperCase();
+}
 
   function applyFixedOrder(values, fixedOrder) {
     if (!fixedOrder) return values;
@@ -77,10 +105,61 @@
     });
   }
 
+  function sortText(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function getYearValue(paper) {
+  const year = parseInt(paper.year, 10);
+  return isNaN(year) ? null : year;
+}
+
+function sortPapers(papers) {
+  const sorted = papers.slice();
+
+  if (sortState === 'year-desc') {
+    sorted.sort(function (a, b) {
+      const yearA = getYearValue(a);
+      const yearB = getYearValue(b);
+
+      if (yearA === null && yearB === null) return 0;
+      if (yearA === null) return 1;
+      if (yearB === null) return -1;
+
+      return yearB - yearA;
+    });
+  }
+
+  if (sortState === 'year-asc') {
+    sorted.sort(function (a, b) {
+      const yearA = getYearValue(a);
+      const yearB = getYearValue(b);
+
+      if (yearA === null && yearB === null) return 0;
+      if (yearA === null) return 1;
+      if (yearB === null) return -1;
+
+      return yearA - yearB;
+    });
+  }
+
+  if (sortState === 'title-asc') {
+    sorted.sort(function (a, b) {
+      return sortText(a.title).localeCompare(sortText(b.title));
+    });
+  }
+
+  if (sortState === 'citation-asc') {
+    sorted.sort(function (a, b) {
+      return sortText(a.citation).localeCompare(sortText(b.citation));
+    });
+  }
+
+  return sorted;
+}
+
   function getFieldValues(paper, field) {
-    const val = paper[field];
-    if (val === null || val === undefined) return [];
-    return Array.isArray(val) ? val.map(String) : [String(val)];
+  return cleanFieldValues(paper[field]);
   }
 
   // Returns the set of papers that pass all filters EXCEPT the one with filterId.
@@ -182,7 +261,7 @@
           });
 
           const span = document.createElement('span');
-          span.textContent = val;
+          span.textContent = formatFilterLabel(val);
           optEl.appendChild(cb);
           optEl.appendChild(span);
           dropInner.appendChild(optEl);
@@ -242,7 +321,7 @@
       textEl.textContent = def.allLabel;
       textEl.classList.remove('has-selection');
     } else if (sel.size === 1) {
-      textEl.textContent = [...sel][0];
+      textEl.textContent = formatFilterLabel([...sel][0]);
       textEl.classList.add('has-selection');
     } else {
       textEl.textContent = sel.size + ' selected';
@@ -345,7 +424,9 @@
       filtered = filtered.filter(function (p) { return searchableText(p).includes(q); });
     }
 
-    renderCards(filtered);
+    const sorted = sortPapers(filtered);
+
+    renderCards(sorted);
     updateResultCount(filtered.length, PAPERS.length);
     updateClearButton();
   }
@@ -374,15 +455,37 @@
   }
 
   function buildTags(p) {
-    const tags = [];
-    (p.phase             || []).forEach(function (v) { tags.push('<span class="tag tag-phase">'      + esc(v) + '</span>'); });
-    (p.task              || []).forEach(function (v) { tags.push('<span class="tag tag-task">'       + esc(v) + '</span>'); });
-    (p.llm_family        || []).forEach(function (v) { tags.push('<span class="tag tag-llm">'        + esc(v) + '</span>'); });
-    (p.interaction_approach|| []).forEach(function (v) { tags.push('<span class="tag tag-approach">'   + esc(v) + '</span>'); });
-    (p.language          || []).forEach(function (v) { tags.push('<span class="tag tag-lang">'       + esc(v) + '</span>'); });
-    (p.population        || []).forEach(function (v) { tags.push('<span class="tag tag-population">' + esc(v) + '</span>'); });
-    (p.data_type         || []).forEach(function (v) { tags.push('<span class="tag tag-datatype">'   + esc(v) + '</span>'); });
-    return tags.join('');
+  const tags = [];
+
+  getFieldValues(p, 'phase').forEach(function (v) {
+    tags.push('<span class="tag tag-phase">' + esc(v) + '</span>');
+  });
+
+  getFieldValues(p, 'task').forEach(function (v) {
+    tags.push('<span class="tag tag-task">' + esc(v) + '</span>');
+  });
+
+  getFieldValues(p, 'llm_family').forEach(function (v) {
+    tags.push('<span class="tag tag-llm">' + esc(v) + '</span>');
+  });
+
+  getFieldValues(p, 'interaction_approach').forEach(function (v) {
+    tags.push('<span class="tag tag-approach">' + esc(v) + '</span>');
+  });
+
+  getFieldValues(p, 'language').forEach(function (v) {
+    tags.push('<span class="tag tag-lang">' + esc(v) + '</span>');
+  });
+
+  getFieldValues(p, 'population').forEach(function (v) {
+    tags.push('<span class="tag tag-population">' + esc(v) + '</span>');
+  });
+
+  getFieldValues(p, 'data_type').forEach(function (v) {
+    tags.push('<span class="tag tag-datatype">' + esc(v) + '</span>');
+  });
+
+  return tags.join('');
   }
 
   function buildDetailGrid(p) {
@@ -550,6 +653,14 @@
       });
     }
 
+    const sortEl = document.getElementById('sort-select');
+    if (sortEl) {
+      sortEl.addEventListener('change', function () {
+        sortState = sortEl.value;
+        applyFilters();
+      });
+    }
+    
     const clearBtn = document.getElementById('clear-filters');
     if (clearBtn) {
       clearBtn.addEventListener('click', function () {
@@ -570,6 +681,10 @@
         applyFilters();
         updateAllDropdownAvailability();
         updateSiliconSamplingVisibility();
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
       });
     }
 
@@ -579,6 +694,21 @@
     });
 
     window.addEventListener('hashchange', checkHash);
+
+    const backToTopBtn = document.getElementById('back-to-top');
+
+    if (backToTopBtn) {
+    window.addEventListener('scroll', function () {
+    backToTopBtn.classList.toggle('visible', window.scrollY > 300);
+    });
+
+    backToTopBtn.addEventListener('click', function () {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+    });
+    }
   }
 
   // ── Init ─────────────────────────────────────────────────────
